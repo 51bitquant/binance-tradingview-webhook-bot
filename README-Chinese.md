@@ -1,6 +1,6 @@
 # binance-tradingview-webhook-bot
 
-[中文文档](README-Chinese.md)
+[English Docs](README.md)
 
 A tradingview webhook trading bot for Binance Exchange. you can just
 simply set up your own signal alert from tradingview, and the bot will
