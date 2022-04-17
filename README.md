@@ -11,7 +11,7 @@ help you place order to Binance Spot or Binance Future.
 Follow the following step you can create your own Binance tradingview
 webhook bot.
 
-## 1. buy an server and install nginx server.
+## 1. buy an server、 domain and install nginx software.
 If you don't have a server, you need to buy a server and a domain. Then
 resolve your domain to your server ip.
 
@@ -52,16 +52,24 @@ Then edit the nginx.conf file, and add a server for the Flask Server,
 then save the nginx.conf
 
 ```
-server {
-        listen 80;
-        server_name your.dormain.com;
-        charset utf-8;
 
-        location / {
-          proxy_pass http://localhost:8888;
+http {
+
+    server {
+            listen 80;
+            server_name your.dormain.com;
+            charset utf-8;
+    
+            location / {
+              proxy_pass http://localhost:8888;
+            }
+    
         }
-
-    }
+        
+        
+     }
+     
+     # other configurations.
 
 ```
 
@@ -92,5 +100,24 @@ you can config like this:
 
 ```
 
+
+Remember, you also need to set the commemt at the your order, like:
+
+```
+
+strategy.entry('L', strategy.long, comment="long")
+strategy.entry('S', strategy.short, comment="short")
+strategy.exit('tp', comment="exit")
+
+
+```
+
 Ok, happy using the Binance Tradingview Webhook bot.
 
+
+# Contact
+
+twitter: @51bitquant.eth
+discord:51bitquant#8078
+
+If you have any question, please feel free to contact me.

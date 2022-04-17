@@ -1,28 +1,21 @@
 # binance-tradingview-webhook-bot
 
-[English Docs](README.md)
+[English Docs](README.md) 
 
-A tradingview webhook trading bot for Binance Exchange. you can just
-simply set up your own signal alert from tradingview, and the bot will
-help you place order to Binance Spot or Binance Future.
+币安Tradingview Webhook交易机器人,
+通过简单的配置可以实现tradingview发送的信号进行交易。目前支持在币安现货和合约的交易信号。但是现货的需要你处理交易的下单逻辑。可以参考合约的下单方式。
 
+# 如何使用
 
-# how-to use
-Follow the following step you can create your own Binance tradingview
-webhook bot.
+## 1. 购买服务器、域名和安装nginx软件
+如果你还没有服务器，可以购买一个服务器和域名，并把你的域名解析到当前服务器ip地址.
 
-## 1. buy an server and install nginx server.
-If you don't have a server, you need to buy a server and a domain. Then
-resolve your domain to your server ip.
-
-After setup your own server, you also need to install the nginx
-software. For MacOs system, you can just type this command into your
-terminal:
+完成上一步之后，你还需要安装nginx软件。对于macOS系统,
+你可以在终端输入一下命令安装:
 
 > brew install nginx
 
-Other useful command are:
-
+其他有用的命令如下:
 
 > brew services start nginx 
 
@@ -30,14 +23,14 @@ Other useful command are:
 
 > brew services reload nginx
 
-if you don't have the brew installed, just google how to install the
-homebrew.
+如果提示你没有brew, 那么你需要安装下homebrew, 具体百度或者谷歌一下。
 
-For window server, you just download the nginx software from:
-https://nginx.org/en/download.html, then unzip and cd to the current
-directory. Here are the useful command.
+对于window系统，你可以从以下链接下载nginx:
+https://nginx.org/en/download.html, 然后解压到指定目录. 然后启动它:
 
 > start nginx.exe
+
+其他有用的命令如下:
 
 > nginx.exe -s stop
 
@@ -48,8 +41,8 @@ directory. Here are the useful command.
 > nginx.exe -s reload (reload)
 
 
-Then edit the nginx.conf file, and add a server for the Flask Server,
-then save the nginx.conf
+另外你还需要编辑下nginx.cong文件,该文件只要是配置你的nginx进行端口转发。由于tradingview只能用80端口，所以你需要为你的web服务器进行端口转发。
+在http里面添加如下配置信息：
 
 ```
 server {
@@ -65,20 +58,13 @@ server {
 
 ```
 
+最后运行main.py。
 
-Then run the main.py, like python main.py. You may need to create a
-python virtual environment.
+## 创建webhook信号提醒
 
-## create an alert from tradingview.
- 
-You may need to register an account from https://www.tradingview.com and
-develop your own strategy and create an alert.
-
-## config your webhook details.
- 
-when creating an alert, select the box Webhook Url, and past your
-webhook url like: http://www.your.domain/webhook, for the message body,
-you can config like this:
+ 创建webhook提醒的时候，勾选Webhook Url 选项,
+ 然后把你webhook的链接粘贴进去，例如: http://www.your.domain/webhook,
+ 消息体格式如下
 
 ```
 {"action": "{{strategy.order.comment}}",
@@ -92,5 +78,24 @@ you can config like this:
 
 ```
 
-Ok, happy using the Binance Tradingview Webhook bot.
+另外在你的策略中，你订单的comment要填写成如下格式:
 
+```
+
+strategy.entry('L', strategy.long, comment="long")
+strategy.entry('S', strategy.short, comment="short")
+strategy.exit('tp', comment="exit")
+
+
+```
+
+祝你老板赚到打钱。
+
+
+# 联系方式
+
+微信: bitquant51 
+
+discord: 51bitquant#8078
+
+如果使用中遇到任何问题，可以咨询我。
