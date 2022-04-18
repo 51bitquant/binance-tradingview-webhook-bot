@@ -58,7 +58,7 @@ server {
 
 ```
 
-最后运行main.py。
+修改nginx.conf后需要重启nginx 或者重新加载，你的配置才会生效， 最后运行main.py。
 
 ## 创建webhook信号提醒
 

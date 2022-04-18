@@ -74,8 +74,9 @@ http {
 ```
 
 
-Then run the main.py, like python main.py. You may need to create a
-python virtual environment.
+After editing the eginx.conf, you need to restart nginx.conf or reload
+the eginx. Finally,  run the main.py, like python main.py. You may need
+to create a python virtual environment.
 
 ## create an alert from tradingview.
  

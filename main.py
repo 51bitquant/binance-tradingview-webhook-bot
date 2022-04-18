@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
 def welcome():
-    return "Fuck your mother. This is for testing."
+    return "Hello Flask, This is for testing."
 
 
 @app.route('/webhook', methods=['POST', "GET"])
