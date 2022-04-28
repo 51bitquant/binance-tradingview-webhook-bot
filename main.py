@@ -14,17 +14,20 @@ def welcome():
     return "Hello Flask, This is for testing."
 
 
-@app.route('/webhook', methods=['POST', "GET"])
+@app.route('/webhook', methods=['POST'])
 def webhook():
-    data = json.loads(request.data)
+    try:
+        data = json.loads(request.data)
+        if data.get('passphrase') != config.WEBHOOK_PASSPHRASE:
+            return "failure"
 
-    if data['passphrase'] != config.WEBHOOK_PASSPHRASE:
+        event = Event(EVENT_SIGNAL, data=data)
+        event_engine.put(event)
+
+        return "success"
+    except Exception as error:
+        print(f"error: {error}")
         return "failure"
-
-    event = Event(EVENT_SIGNAL, data=data)
-    event_engine.put(event)
-
-    return "success"
 
 
 def trade(symbol, action, vol, data):
