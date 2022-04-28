@@ -95,14 +95,18 @@ you can config like this:
 "exchange": "binance_future",
 "price":"{{strategy.order.price}}",
 "close": "{{close}}",
-"passphrase": "your custom password for safety."
+"passphrase": "your custom password for safety.",
+"strategy_name": "ETHUSDT_15min",
 "some other key": "some other value you need"
 }
 
 ```
-
-
-Remember, you also need to set the commemt at the your order, like:
+In this tradingbot, in order to make the order filled immediately, we
+use the market order type. If you trade BTCUSDT, ETHUSDT pairs, the
+slippage is very small. If you want to use the limit order type, please
+checkout the code and just change the order type to limit and change the
+order's price. Last but not least, you also need to set the commemt at
+the your order, like:
 
 ```
 
@@ -113,12 +117,14 @@ strategy.exit('tp', comment="exit")
 
 ```
 
-Ok, happy using the Binance Tradingview Webhook bot.
+Ok, happy using the Binance Tradingview Webhook bot and have a good
+luck.
 
 
 # Contact
 
 twitter: @51bitquant.eth
+
 discord:51bitquant#8078
 
 If you have any question, please feel free to contact me.

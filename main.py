@@ -35,17 +35,17 @@ def future_trade(data: dict):
 
     symbol = data.get('symbol', None)
     action = data.get('action', None)
-    strategy_name = data.get('name', None)
+    strategy_name = data.get('strategy_name', None)
+
     if not strategy_name:
         return
 
     strategy_config = config.strategies.get(strategy_name, None)
-
-    if strategy_config:
-        current_pos = strategy_config.get('pos', 0)
-        trading_volume = strategy_config.get('trading_volume', 0)
-    else:
+    if not strategy_config:
         return
+
+    current_pos = strategy_config.get('pos', 0)
+    trading_volume = strategy_config.get('trading_volume', 0)
 
     # print('the action: ', action, "current_pos: ", current_pos, "trading_volume: ", trading_volume)
     price = str(data.get('price', 0))

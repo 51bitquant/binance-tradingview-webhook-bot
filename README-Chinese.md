@@ -72,13 +72,14 @@ server {
 "exchange": "binance_future",
 "price":"{{strategy.order.price}}",
 "close": "{{close}}",
-"passphrase": "your custom password for safety."
+"passphrase": "your customized password for safety.",
+"strategy_name": "ETHUSDT_5min",
 "some other key": "some other value you need"
 }
 
 ```
-
-另外在你的策略中，你订单的comment要填写成如下格式:
+需要注意的是，你的strategy_name的值，要跟你在config.py文件中的strategies里面的key要对应起来。
+不然它找不到你对应的策略的配置参数。另外在你的策略中，你订单的comment要填写成如下格式:
 
 ```
 
@@ -89,8 +90,9 @@ strategy.exit('tp', comment="exit")
 
 ```
 
-祝你老板赚到打钱。
-
+程序中，采用市价单的方式下单，主要是为了保证及时成交。如果你是跑BTCUSDT,
+ETHUSDT等流动性好的品种，那么其滑点是比较小的。如果你想用挂单的方式，可以找到代码的下单方式，修改代码中的orderType和价格即可。
+最后祝老板发财。
 
 # 联系方式
 
