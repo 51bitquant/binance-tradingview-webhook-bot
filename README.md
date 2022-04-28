@@ -16,8 +16,9 @@ If you don't have a server, you need to buy a server and a domain. Then
 resolve your domain to your server ip.
 
 After setup your own server, you also need to install the nginx
-software. For MacOs system, you can just type this command into your
-terminal:
+software. For window, you can download from
+[https://nginx.org/en/download.html](https://nginx.org/en/download.html) , For MacOs system, you can just
+type this command into your terminal:
 
 > brew install nginx
 

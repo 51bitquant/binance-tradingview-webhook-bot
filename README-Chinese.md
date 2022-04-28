@@ -10,7 +10,7 @@
 ## 1. 购买服务器、域名和安装nginx软件
 如果你还没有服务器，可以购买一个服务器和域名，并把你的域名解析到当前服务器ip地址.
 
-完成上一步之后，你还需要安装nginx软件。对于macOS系统,
+完成上一步之后，你还需要安装nginx软件。window用户可以从这个网站下载[https://nginx.org/en/download.html](https://nginx.org/en/download.html)，对于macOS系统,
 你可以在终端输入一下命令安装:
 
 > brew install nginx
