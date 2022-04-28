@@ -11,7 +11,7 @@ help you place order to Binance Spot or Binance Future.
 Follow the following step you can create your own Binance tradingview
 webhook bot.
 
-## 1. buy an server、 domain and install nginx software.
+## 1. buy a server、 domain and install the nginx software.
 If you don't have a server, you need to buy a server and a domain. Then
 resolve your domain to your server ip.
 
