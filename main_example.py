@@ -16,6 +16,7 @@ def welcome():
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
+    # you receive the signal from trading view.
     try:
         data = json.loads(request.data)
         print(data)
