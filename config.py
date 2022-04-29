@@ -17,35 +17,35 @@ strategies = {
     # strategy name -> strategy data
     "BTCUSDT_1h":  {'tick_price': 0.1,
                    'min_volume': 0.001,
-                   'trading_volume': 0.1,
+                   'trading_volume': 0,
                    'symbol': 'BTCUSDT',
                     'pos': 0   # current position when start your strategy.
                    },
 
     "ETHUSDT_5min":  {'tick_price': 0.01,
                      'min_volume': 0.001,
-                     'trading_volume': 1,
+                     'trading_volume': 0,
                      'symbol': 'ETHUSDT',
                       'pos': 0   # current position when start your strategy.
                      },
 
     "ETHUSDT_15min": {'tick_price': 0.01,
                       'min_volume': 0.001,
-                      'trading_volume': 5,
+                      'trading_volume': 0,
                       'symbol': 'ETHUSDT',
                       'pos': 0  # current position when start your strategy.
                       },
 
     "UNIUSDT_5min":  {'tick_price': 0.01,
                      'min_volume': 0.001,
-                     'trading_volume': 1,
+                     'trading_volume': 0,
                      'symbol': 'UNIUSDT',
                       'pos': 0  # current position when start your strategy.
                      },
 
     "UNIUSDT_15min": {'tick_price': 0.01,
                       'min_volume': 0.001,
-                      'trading_volume': 2,
+                      'trading_volume': 0,
                       'symbol': 'UNIUSDT',
                       'pos': 0  # current position when start your strategy.
                       },

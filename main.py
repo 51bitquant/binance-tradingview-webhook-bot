@@ -34,7 +34,7 @@ def webhook():
 def future_trade(data: dict):
 
     symbol = data.get('symbol', None)
-    action = data.get('action', None)
+    action = data.get('action', '').upper()
     strategy_name = data.get('strategy_name', None)
 
     if not strategy_name:
@@ -47,114 +47,113 @@ def future_trade(data: dict):
     current_pos = strategy_config.get('pos', 0)
     trading_volume = strategy_config.get('trading_volume', 0)
 
-    # print('the action: ', action, "current_pos: ", current_pos, "trading_volume: ", trading_volume)
+    # print('strategy name', strategy_name, 'action: ', action, "current_pos: ", current_pos, "trading_volume: ", trading_volume)
+    # print('order id :', future_strategy_order_dict.get(strategy_name))
     price = str(data.get('price', 0))
 
-    if action == 'exit':
+    if action == 'EXIT':
 
         if current_pos > 0:
 
             vol1 = str(current_pos)
 
-            order = binance_future_client.place_order(
+            order_id = binance_future_client.get_client_order_id()
+            future_strategy_order_dict[strategy_name] = order_id
+            binance_future_client.place_order(
                 symbol=symbol,
                 order_side=OrderSide.SELL,
                 order_type=OrderType.MARKET,
                 quantity=Decimal(vol1),
-                price=Decimal(price)
+                price=Decimal(price),
+                client_order_id=order_id
             )
-
-            if order:
-                future_strategy_order_dict[strategy_name] = order
 
         elif current_pos < 0:
 
             vol1 = str(abs(current_pos))
-            order = binance_future_client.place_order(
+
+            order_id = binance_future_client.get_client_order_id()
+            future_strategy_order_dict[strategy_name] = order_id
+            binance_future_client.place_order(
                 symbol=symbol,
                 order_side=OrderSide.BUY,
                 order_type=OrderType.MARKET,
                 quantity=Decimal(vol1),
-                price=Decimal(price)
+                price=Decimal(price),
+                client_order_id=order_id
             )
 
-            if order:
-                future_strategy_order_dict[strategy_name] = order
-
-
-    elif action == 'long':
+    elif action == 'LONG':
 
         if current_pos < 0:
             vol1 = str(abs(current_pos) + trading_volume)
 
-            order = binance_future_client.place_order(
+            order_id = binance_future_client.get_client_order_id()
+            future_strategy_order_dict[strategy_name] = order_id
+            binance_future_client.place_order(
                 symbol=symbol,
                 order_side=OrderSide.BUY,
                 order_type=OrderType.MARKET,
                 quantity=Decimal(vol1),
-                price=Decimal(price)
+                price=Decimal(price),
+                client_order_id=order_id
             )
-
-            if order:
-                future_strategy_order_dict[strategy_name] = order
 
         if current_pos == 0:
             # config your trading volume in config.py
 
             vol1 = str(trading_volume)
-            order = binance_future_client.place_order(
+            order_id = binance_future_client.get_client_order_id()
+            future_strategy_order_dict[strategy_name] = order_id
+            binance_future_client.place_order(
                 symbol=symbol,
                 order_side=OrderSide.BUY,
                 order_type=OrderType.MARKET,
                 quantity=Decimal(vol1),
-                price=Decimal(price)
+                price=Decimal(price),
+                client_order_id=order_id
             )
 
-            if order:
-                future_strategy_order_dict[strategy_name] = order
-
-    elif action == 'short':
+    elif action == 'SHORT':
 
         if current_pos > 0:
 
             vol1 = str(abs(current_pos) + trading_volume)
-            order = binance_future_client.place_order(
+            order_id = binance_future_client.get_client_order_id()
+            future_strategy_order_dict[strategy_name] = order_id
+            binance_future_client.place_order(
                 symbol=symbol,
                 order_side=OrderSide.SELL,
                 order_type=OrderType.MARKET,
                 quantity=Decimal(vol1),
-                price=Decimal(price)
+                price=Decimal(price),
+                client_order_id=order_id
             )
-
-            if order:
-                future_strategy_order_dict[strategy_name] = order
 
         if current_pos == 0:
             vol1 = str(trading_volume)
-            order = binance_future_client.place_order(
+            order_id = binance_future_client.get_client_order_id()
+            future_strategy_order_dict[strategy_name] = order_id
+            binance_future_client.place_order(
                 symbol=symbol,
                 order_side=OrderSide.SELL,
                 order_type=OrderType.MARKET,
                 quantity=Decimal(str(vol1)),
-                price=Decimal(price)
+                price=Decimal(price),
+                client_order_id=order_id
             )
-
-            if order:
-                future_strategy_order_dict[strategy_name] = order
 
 
 def timer_event(event: Event):
     for strategy_name in future_strategy_order_dict.keys():
-        order = future_strategy_order_dict[strategy_name]
-        if not order:
+        order_id = future_strategy_order_dict[strategy_name]
+        if not order_id:
             continue
 
         symbol = config.strategies.get(strategy_name, {}).get('symbol', "")
-        order_id = order.get('clientOrderId')
 
-        order_status = binance_future_client.get_order(symbol, client_order_id=order_id)
-        if order_status:
-
+        (code, order_status) = binance_future_client.get_order(symbol, client_order_id=order_id)
+        if code == 200 and order_status:
             if order_status.get('status') == 'CANCELED' or order_status.get('status') == 'FILLED':
                 side = order_status.get('side')
                 strategy_config = config.strategies.get(strategy_name, None)
@@ -168,12 +167,13 @@ def timer_event(event: Event):
 
                 config.strategies[strategy_name] = strategy_config  # update the data.
                 future_strategy_order_dict[strategy_name] = None
+        elif code == 400 and order_status.get('code') == -2013:  # Order does not exist.
+            future_strategy_order_dict[strategy_name] = None
 
     for strategy_name in future_signal_dict.keys():
 
-        order = future_strategy_order_dict.get(strategy_name, None)
-
-        if not order:
+        orderid = future_strategy_order_dict.get(strategy_name, None)
+        if not orderid:
             data = future_signal_dict.get(strategy_name, None)
             if data:
                 future_trade(data)
@@ -200,7 +200,10 @@ def signal_event(event: Event):
     """
 
     data = event.data
-    strategy_name = data.get('name', None)
+    strategy_name = data.get('strategy_name', None)
+    if not strategy_name:
+        print("config from tradingview does not have strategy_name key.")
+        return
 
     if data.get('exchange', None) == 'binance_future':
         future_signal_dict[strategy_name] = data  # strategy_name -> data
@@ -218,8 +221,8 @@ if __name__ == '__main__':
 
     future_strategy_order_dict = {}
 
-    binance_spot_client = BinanceSpotHttpClient(api_key=config.API_KEY, secret=config.API_SECRET, try_counts=1)
-    binance_future_client = BinanceFutureHttpClient(api_key=config.API_KEY, secret=config.API_SECRET, try_counts=1)
+    binance_spot_client = BinanceSpotHttpClient(api_key=config.API_KEY, secret=config.API_SECRET)
+    binance_future_client = BinanceFutureHttpClient(api_key=config.API_KEY, secret=config.API_SECRET)
 
     event_engine = EventEngine(interval=15)  # you can update the loop interval.
     event_engine.start()
