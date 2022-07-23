@@ -13,7 +13,7 @@ from .constant import RequestMethod, Interval, OrderSide, OrderType
 
 class BinanceSpotHttpClient(object):
 
-    def __init__(self, api_key=None, secret=None, host=None, timeout=5):
+    def __init__(self, api_key=None, secret=None, host=None, timeout=5, try_counts=3):
         self.api_key = api_key
         self.secret = secret
         self.host = host if host else "https://api.binance.com"
@@ -21,6 +21,7 @@ class BinanceSpotHttpClient(object):
         self.timeout = timeout
         self.order_count_lock = Lock()
         self.order_count = 1_000_000
+        self.try_counts = try_counts
 
     def build_parameters(self, params: dict):
         keys = list(params.keys())
@@ -37,12 +38,16 @@ class BinanceSpotHttpClient(object):
             url += '?' + self.build_parameters(requery_dict)
         headers = {"X-MBX-APIKEY": self.api_key}
 
-        response = requests.request(req_method.value, url=url, headers=headers, timeout=self.timeout)
-        try:
-            return response.status_code, response.json()
-        except Exception as error:
-            print(error)
-            return 500, {"code": 500, "msg": "to json error."}
+        for i in range(0, self.try_counts):
+            try:
+                response = requests.request(req_method.value, url=url, headers=headers, timeout=self.timeout)
+                if response.status_code == 200:
+                    return response.json()
+                else:
+                    print(f"请求没有成功: {response.status_code}, 继续尝试请求, {response.text}")
+            except Exception as error:
+                print(f"请求:{path}, 发生了错误: {error}")
+                time.sleep(3)
 
     def get_server_time(self):
         path = '/api/v3/time'
