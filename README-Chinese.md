@@ -5,10 +5,16 @@
 币安Tradingview Webhook交易机器人,
 通过简单的配置可以实现tradingview发送的信号进行交易。目前支持在币安现货和合约的交易信号。但是现货的需要你处理交易的下单逻辑。可以参考合约的下单方式。
 
+如果你想在tradingview
+webhoook里面使用算法交易来降低成本或者滑点，可以考虑使用[howtrader](https://github.com/51bitquant/howtrader),
+里面内置了一些算法交易，同时更容易扩展你的交易信号。
+
 # 如何使用
 
 ## 1. 购买服务器、域名和安装nginx软件
 如果你还没有服务器，可以购买一个服务器和域名，并把你的域名解析到当前服务器ip地址.
+
+**服务器推荐**：[https://www.ucloud.cn/site/active/kuaijie.html?invitation_code=C1x2EA81CD79B8C#dongjing](https://www.ucloud.cn/site/active/kuaijie.html?invitation_code=C1x2EA81CD79B8C#dongjing)
 
 完成上一步之后，你还需要安装nginx软件。window用户可以从这个网站下载[https://nginx.org/en/download.html](https://nginx.org/en/download.html)，对于macOS系统,
 你可以在终端输入一下命令安装:
@@ -57,6 +63,9 @@ server {
     }
 
 ```
+
+server_name 可以填写字符串或者你的ip地址都可以的， 比如： server_name
+xxx.xxx.xxx.xxx;
 
 修改nginx.conf后需要重启nginx 或者重新加载，你的配置才会生效， 最后运行main.py。
 

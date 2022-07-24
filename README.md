@@ -6,6 +6,10 @@ A tradingview webhook trading bot for Binance Exchange. you can just
 simply set up your own signal alert from tradingview, and the bot will
 help you place order to Binance Spot or Binance Future.
 
+if you want to use algo trader in your strategy, we recommend you to use
+[howtrader](https://github.com/51bitquant/howtrader), it implements a
+few algo trader in tv strategy.
+
 
 # how-to use
 Follow the following step you can create your own Binance tradingview
@@ -14,6 +18,10 @@ webhook bot.
 ## 1. buy a server、 domain and install the nginx software.
 If you don't have a server, you need to buy a server and a domain. Then
 resolve your domain to your server ip.
+
+**window server
+recommendation**：[https://www.ucloud.cn/site/active/kuaijie.html?invitation_code=C1x2EA81CD79B8C#dongjing](https://www.ucloud.cn/site/active/kuaijie.html?invitation_code=C1x2EA81CD79B8C#dongjing)
+
 
 After setup your own server, you also need to install the nginx
 software. For window, you can download from
