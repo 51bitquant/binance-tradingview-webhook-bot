@@ -5,13 +5,14 @@ import hashlib
 from threading import Lock
 from datetime import datetime
 from decimal import Decimal
+import json
 
 from .constant import RequestMethod, Interval, OrderSide, OrderType
 
 
 class BinanceFutureHttpClient(object):
 
-    def __init__(self, api_key=None, secret=None, timeout=5, try_counts=3):
+    def __init__(self, api_key=None, secret=None, timeout=5):
         self.key = api_key
         self.secret = secret
         self.host = "https://fapi.binance.com"
@@ -19,7 +20,6 @@ class BinanceFutureHttpClient(object):
         self.timeout = timeout
         self.order_count_lock = Lock()
         self.order_count = 1_000_000
-        self.try_counts = try_counts
 
     def build_parameters(self, params: dict):
         keys = list(params.keys())
@@ -36,16 +36,14 @@ class BinanceFutureHttpClient(object):
             url += '?' + self.build_parameters(requery_dict)
         headers = {"X-MBX-APIKEY": self.key}
 
-        for i in range(0, self.try_counts):
+        response = requests.request(req_method.value, url=url, headers=headers, timeout=self.timeout)
+        if response.status_code == 200:
+            return response.status_code, response.json()
+        else:
             try:
-                response = requests.request(req_method.value, url=url, headers=headers, timeout=self.timeout)
-                if response.status_code == 200:
-                    return response.json()
-                else:
-                    print(f"请求没有成功: {response.status_code}, 继续尝试请求, {response.text}")
+                return response.status_code, json.loads(response.text)
             except Exception as error:
-                print(f"请求:{path}, 发生了错误: {error}, 时间: {datetime.now()}")
-                time.sleep(3)
+                return response.status_code, {"msg": response.text, 'eror': str(error)}
 
     def server_time(self):
         path = '/fapi/v1/time'
@@ -67,7 +65,7 @@ class BinanceFutureHttpClient(object):
 
         return self.request(RequestMethod.GET, path, query_dict)
 
-    def get_kline(self, symbol, interval: Interval, start_time=None, end_time=None, limit=500, max_try_time=10):
+    def get_kline(self, symbol, interval: Interval, start_time=None, end_time=None, limit=500):
         """
 
         :param symbol:
@@ -105,10 +103,7 @@ class BinanceFutureHttpClient(object):
         if end_time:
             query_dict['endTime'] = end_time
 
-        for i in range(max_try_time):
-            data = self.request(RequestMethod.GET, path, query_dict)
-            if isinstance(data, list) and len(data):
-                return data
+        return self.request(RequestMethod.GET, path, query_dict)
 
     def get_latest_price(self, symbol):
         path = "/fapi/v1/ticker/price"

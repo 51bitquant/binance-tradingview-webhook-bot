@@ -3,7 +3,6 @@ from flask import Flask, request
 from api.binance_spot import BinanceSpotHttpClient
 from api.binance_future import BinanceFutureHttpClient, OrderSide, OrderType
 from event import EventEngine, Event, EVENT_TIMER, EVENT_SIGNAL
-import time
 from decimal import Decimal
 
 app = Flask(__name__)
@@ -20,7 +19,7 @@ def webhook():
         data = json.loads(request.data)
         print(data)
         if data.get('passphrase', None) != config.WEBHOOK_PASSPHRASE:
-            return "failure"
+            return "failure: passphrase is incorrect."
 
         event = Event(EVENT_SIGNAL, data=data)
         event_engine.put(event)
@@ -49,7 +48,7 @@ def future_trade(data: dict):
 
     # print('strategy name', strategy_name, 'action: ', action, "current_pos: ", current_pos, "trading_volume: ", trading_volume)
     # print('order id :', future_strategy_order_dict.get(strategy_name))
-    price = str(data.get('price', 0))
+    price = str(data.get('price', '0'))
 
     if action == 'EXIT':
 
@@ -58,8 +57,7 @@ def future_trade(data: dict):
             vol1 = str(current_pos)
 
             order_id = binance_future_client.get_client_order_id()
-            future_strategy_order_dict[strategy_name] = order_id
-            binance_future_client.place_order(
+            status, order = binance_future_client.place_order(
                 symbol=symbol,
                 order_side=OrderSide.SELL,
                 order_type=OrderType.MARKET,
@@ -68,13 +66,17 @@ def future_trade(data: dict):
                 client_order_id=order_id
             )
 
+            print("exit long: ", status, order)
+
+            if status == 200:
+                future_strategy_order_dict[strategy_name] = order_id
+
         elif current_pos < 0:
 
             vol1 = str(abs(current_pos))
 
             order_id = binance_future_client.get_client_order_id()
-            future_strategy_order_dict[strategy_name] = order_id
-            binance_future_client.place_order(
+            status, order = binance_future_client.place_order(
                 symbol=symbol,
                 order_side=OrderSide.BUY,
                 order_type=OrderType.MARKET,
@@ -82,15 +84,17 @@ def future_trade(data: dict):
                 price=Decimal(price),
                 client_order_id=order_id
             )
+            print("exit short: ", status, order)
+            if status == 200:
+                future_strategy_order_dict[strategy_name] = order_id
 
     elif action == 'LONG':
 
         if current_pos < 0:
-            vol1 = str(abs(current_pos) + trading_volume)
 
+            vol1 = str(abs(current_pos) + trading_volume)
             order_id = binance_future_client.get_client_order_id()
-            future_strategy_order_dict[strategy_name] = order_id
-            binance_future_client.place_order(
+            status, order = binance_future_client.place_order(
                 symbol=symbol,
                 order_side=OrderSide.BUY,
                 order_type=OrderType.MARKET,
@@ -98,14 +102,16 @@ def future_trade(data: dict):
                 price=Decimal(price),
                 client_order_id=order_id
             )
+            print("exit short & long: ", status, order)
+            if status == 200:
+                future_strategy_order_dict[strategy_name] = order_id
 
         if current_pos == 0:
             # config your trading volume in config.py
 
             vol1 = str(trading_volume)
             order_id = binance_future_client.get_client_order_id()
-            future_strategy_order_dict[strategy_name] = order_id
-            binance_future_client.place_order(
+            status, order = binance_future_client.place_order(
                 symbol=symbol,
                 order_side=OrderSide.BUY,
                 order_type=OrderType.MARKET,
@@ -113,6 +119,9 @@ def future_trade(data: dict):
                 price=Decimal(price),
                 client_order_id=order_id
             )
+            print("long: ", status, order)
+            if status == 200:
+                future_strategy_order_dict[strategy_name] = order_id
 
     elif action == 'SHORT':
 
@@ -120,8 +129,7 @@ def future_trade(data: dict):
 
             vol1 = str(abs(current_pos) + trading_volume)
             order_id = binance_future_client.get_client_order_id()
-            future_strategy_order_dict[strategy_name] = order_id
-            binance_future_client.place_order(
+            status, order = binance_future_client.place_order(
                 symbol=symbol,
                 order_side=OrderSide.SELL,
                 order_type=OrderType.MARKET,
@@ -129,12 +137,14 @@ def future_trade(data: dict):
                 price=Decimal(price),
                 client_order_id=order_id
             )
+            print("exit long & short: ", status, order)
+            if status == 200:
+                future_strategy_order_dict[strategy_name] = order_id
 
         if current_pos == 0:
             vol1 = str(trading_volume)
             order_id = binance_future_client.get_client_order_id()
-            future_strategy_order_dict[strategy_name] = order_id
-            binance_future_client.place_order(
+            status, order = binance_future_client.place_order(
                 symbol=symbol,
                 order_side=OrderSide.SELL,
                 order_type=OrderType.MARKET,
@@ -142,6 +152,9 @@ def future_trade(data: dict):
                 price=Decimal(price),
                 client_order_id=order_id
             )
+            print("short: ", status, order)
+            if status == 200:
+                future_strategy_order_dict[strategy_name] = order_id
 
 
 def timer_event(event: Event):
@@ -152,12 +165,12 @@ def timer_event(event: Event):
 
         symbol = config.strategies.get(strategy_name, {}).get('symbol', "")
 
-        (code, order_status) = binance_future_client.get_order(symbol, client_order_id=order_id)
-        if code == 200 and order_status:
-            if order_status.get('status') == 'CANCELED' or order_status.get('status') == 'FILLED':
-                side = order_status.get('side')
-                strategy_config = config.strategies.get(strategy_name, None)
-                executed_qty = float(order_status.get('executedQty', 0))
+        status_code, order = binance_future_client.get_order(symbol, client_order_id=order_id)
+        if status_code == 200 and order:
+            if order.get('status') == 'CANCELED' or order.get('status') == 'FILLED':
+                side = order.get('side')
+                strategy_config = config.strategies.get(strategy_name, {})
+                executed_qty = Decimal(order.get('executedQty', "0"))
 
                 if side == "BUY":  # BUY
                     strategy_config['pos'] = strategy_config['pos'] + executed_qty
@@ -165,9 +178,10 @@ def timer_event(event: Event):
                 elif side == "SELL":  # SELL
                     strategy_config['pos'] = strategy_config['pos'] - executed_qty
 
+                # print(strategy_config)
                 config.strategies[strategy_name] = strategy_config  # update the data.
                 future_strategy_order_dict[strategy_name] = None
-        elif code == 400 and order_status.get('code') == -2013:  # Order does not exist.
+        elif status_code == 400 and order.get('code') == -2013:  # Order does not exist.
             future_strategy_order_dict[strategy_name] = None
 
     for strategy_name in future_signal_dict.keys():
@@ -203,7 +217,7 @@ def signal_event(event: Event):
     strategy_name = data.get('strategy_name', None)
     if not strategy_name:
         print("config from tradingview does not have strategy_name key.")
-        return
+        return None
 
     if data.get('exchange', None) == 'binance_future':
         future_signal_dict[strategy_name] = data  # strategy_name -> data
@@ -224,7 +238,7 @@ if __name__ == '__main__':
     binance_spot_client = BinanceSpotHttpClient(api_key=config.API_KEY, secret=config.API_SECRET)
     binance_future_client = BinanceFutureHttpClient(api_key=config.API_KEY, secret=config.API_SECRET)
 
-    event_engine = EventEngine(interval=15)  # you can update the loop interval.
+    event_engine = EventEngine(interval=1)  # you can update the loop interval.
     event_engine.start()
     event_engine.register(EVENT_TIMER, timer_event)
     event_engine.register(EVENT_SIGNAL, signal_event)

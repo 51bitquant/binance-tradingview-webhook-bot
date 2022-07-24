@@ -6,6 +6,7 @@ import hmac
 import hashlib
 from threading import Lock
 from decimal import Decimal
+import json
 
 
 from .constant import RequestMethod, Interval, OrderSide, OrderType
@@ -13,7 +14,7 @@ from .constant import RequestMethod, Interval, OrderSide, OrderType
 
 class BinanceSpotHttpClient(object):
 
-    def __init__(self, api_key=None, secret=None, host=None, timeout=5, try_counts=3):
+    def __init__(self, api_key=None, secret=None, host=None, timeout=5):
         self.api_key = api_key
         self.secret = secret
         self.host = host if host else "https://api.binance.com"
@@ -21,7 +22,6 @@ class BinanceSpotHttpClient(object):
         self.timeout = timeout
         self.order_count_lock = Lock()
         self.order_count = 1_000_000
-        self.try_counts = try_counts
 
     def build_parameters(self, params: dict):
         keys = list(params.keys())
@@ -38,16 +38,15 @@ class BinanceSpotHttpClient(object):
             url += '?' + self.build_parameters(requery_dict)
         headers = {"X-MBX-APIKEY": self.api_key}
 
-        for i in range(0, self.try_counts):
+
+        response = requests.request(req_method.value, url=url, headers=headers, timeout=self.timeout)
+        if response.status_code == 200:
+            return response.status_code, response.json()
+        else:
             try:
-                response = requests.request(req_method.value, url=url, headers=headers, timeout=self.timeout)
-                if response.status_code == 200:
-                    return response.json()
-                else:
-                    print(f"请求没有成功: {response.status_code}, 继续尝试请求, {response.text}")
+                return response.status_code, json.loads(response.text)
             except Exception as error:
-                print(f"请求:{path}, 发生了错误: {error}")
-                time.sleep(3)
+                return response.status_code, {"msg": response.text, 'eror': str(error)}
 
     def get_server_time(self):
         path = '/api/v3/time'
@@ -119,10 +118,7 @@ class BinanceSpotHttpClient(object):
         if end_time:
             query_dict['endTime'] = end_time
 
-        for i in range(max_try_time):
-            data = self.request(RequestMethod.GET, path, query_dict)
-            if isinstance(data, list) and len(data):
-                return data
+        return self.request(RequestMethod.GET, path, query_dict)
 
     def get_latest_price(self, symbol):
         """
@@ -245,13 +241,7 @@ class BinanceSpotHttpClient(object):
                   "origClientOrderId": client_order_id
                   }
 
-        for i in range(0, 3):
-            try:
-                order = self.request(RequestMethod.DELETE, path, params, verify=True)
-                return order
-            except Exception as error:
-                print(f'cancel order error:{error}')
-        return
+        return self.request(RequestMethod.DELETE, path, params, verify=True)
 
     def get_open_orders(self, symbol=None):
         """
