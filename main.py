@@ -162,10 +162,11 @@ def future_trade(data: dict):
 
 
 def timer_event(event: Event):
-    global current_seconds
+    global current_timer
 
-    current_seconds = current_seconds + 1
-    if current_seconds > config.CANCEL_ORDER_IN_SECONDS:
+    current_timer = current_timer + 1
+    if current_timer > config.CANCEL_ORDER_IN_SECONDS:
+        current_timer = 0 # reset the timer
         # will cancel the order repeatedly. the default value is CANCEL_ORDER_IN_SECONDS = 60
         for strategy_name in future_strategy_order_dict.keys():
             order_id = future_strategy_order_dict[strategy_name]
@@ -252,7 +253,7 @@ if __name__ == '__main__':
 
     future_strategy_order_dict = {}
 
-    current_seconds = 0  # current count for cancel order 当前的计数
+    current_timer = 0  # current count for cancel order 当前的计数
 
     binance_spot_client = BinanceSpotHttpClient(api_key=config.API_KEY, secret=config.API_SECRET)
     binance_future_client = BinanceFutureHttpClient(api_key=config.API_KEY, secret=config.API_SECRET)

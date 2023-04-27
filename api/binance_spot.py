@@ -202,11 +202,12 @@ class BinanceSpotHttpClient(object):
 
         if order_type == OrderType.LIMIT:
             params['timeInForce'] = time_inforce
+        elif order_type == OrderType.MAKER:
+            params['type'] = 'LIMIT_MAKER'
 
         if order_type == OrderType.MARKET:
             if params.get('price'):
                 del params['price']
-
 
 
         if order_type == OrderType.STOP:

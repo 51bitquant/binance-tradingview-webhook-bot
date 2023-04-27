@@ -43,7 +43,7 @@ class BinanceFutureHttpClient(object):
             try:
                 return response.status_code, json.loads(response.text)
             except Exception as error:
-                return response.status_code, {"msg": response.text, 'eror': str(error)}
+                return response.status_code, {"msg": response.text, 'error': str(error)}
 
     def server_time(self):
         path = '/fapi/v1/time'
@@ -165,7 +165,7 @@ class BinanceFutureHttpClient(object):
         params = {
             "symbol": symbol,
             "side": order_side.value,
-            "type": order_type.value,
+            "type": 'LIMIT',
             "quantity": quantity,
             "price": price,
             "recvWindow": recvWindow,
@@ -174,12 +174,14 @@ class BinanceFutureHttpClient(object):
         }
 
         if order_type == OrderType.LIMIT:
+            params['type'] = 'LIMIT'
             params['timeInForce'] = time_inforce
         elif order_type == OrderType.MARKET:
             if params.get('price', None):
                 del params['price']
 
-        elif order_type == OrderType.MARKET:
+        elif order_type == OrderType.MAKER:
+            params['type'] = 'LIMIT'
             params['timeInForce'] = "GTX"
 
         elif order_type == OrderType.STOP:

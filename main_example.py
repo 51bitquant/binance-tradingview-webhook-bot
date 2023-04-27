@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
 def welcome():
-    return "Hello Flask, This is for testing."
+    return "Hello Flask, This is for testing. If you receive this message, it means your configuration is correct."
 
 
 @app.route('/webhook', methods=['POST'])
@@ -56,10 +56,14 @@ def future_trade(data: dict):
             vol1 = str(current_pos)
 
             order_id = binance_future_client.get_client_order_id()
+
+            # the order support: LIMIT, MARKET, MAKER order
+            # if you want to place a maker order, set the order_type=OrderType.MAKER
+            # 支持限价单，市价单，做市单，如果你想下做市单，设置参数 order_type=OrderType.MAKER
             status, order = binance_future_client.place_order(
                 symbol=symbol,
                 order_side=OrderSide.SELL,
-                order_type=OrderType.MARKET,
+                order_type=OrderType.MAKER,
                 quantity=Decimal(vol1),
                 price=Decimal(price),
                 client_order_id=order_id
@@ -78,7 +82,7 @@ def future_trade(data: dict):
             status, order = binance_future_client.place_order(
                 symbol=symbol,
                 order_side=OrderSide.BUY,
-                order_type=OrderType.MARKET,
+                order_type=OrderType.MAKER,
                 quantity=Decimal(vol1),
                 price=Decimal(price),
                 client_order_id=order_id
@@ -96,7 +100,7 @@ def future_trade(data: dict):
             status, order = binance_future_client.place_order(
                 symbol=symbol,
                 order_side=OrderSide.BUY,
-                order_type=OrderType.MARKET,
+                order_type=OrderType.MAKER,
                 quantity=Decimal(vol1),
                 price=Decimal(price),
                 client_order_id=order_id
@@ -113,7 +117,7 @@ def future_trade(data: dict):
             status, order = binance_future_client.place_order(
                 symbol=symbol,
                 order_side=OrderSide.BUY,
-                order_type=OrderType.MARKET,
+                order_type=OrderType.MAKER,
                 quantity=Decimal(vol1),
                 price=Decimal(price),
                 client_order_id=order_id
@@ -131,7 +135,7 @@ def future_trade(data: dict):
             status, order = binance_future_client.place_order(
                 symbol=symbol,
                 order_side=OrderSide.SELL,
-                order_type=OrderType.MARKET,
+                order_type=OrderType.MAKER,
                 quantity=Decimal(vol1),
                 price=Decimal(price),
                 client_order_id=order_id
@@ -146,7 +150,7 @@ def future_trade(data: dict):
             status, order = binance_future_client.place_order(
                 symbol=symbol,
                 order_side=OrderSide.SELL,
-                order_type=OrderType.MARKET,
+                order_type=OrderType.MAKER,
                 quantity=Decimal(str(vol1)),
                 price=Decimal(price),
                 client_order_id=order_id
@@ -157,6 +161,20 @@ def future_trade(data: dict):
 
 
 def timer_event(event: Event):
+    global current_timer
+
+    current_timer = current_timer + 1
+    if current_timer > config.CANCEL_ORDER_IN_SECONDS:
+        current_timer = 0  # reset the timer
+        # will cancel the order repeatedly. the default value is CANCEL_ORDER_IN_SECONDS = 60
+        for strategy_name in future_strategy_order_dict.keys():
+            order_id = future_strategy_order_dict[strategy_name]
+            if not order_id:
+                continue
+
+            symbol = config.strategies.get(strategy_name, {}).get('symbol', "")
+            binance_future_client.cancel_order(symbol, client_order_id=order_id)
+
     for strategy_name in future_strategy_order_dict.keys():
         order_id = future_strategy_order_dict[strategy_name]
         if not order_id:
@@ -233,6 +251,8 @@ if __name__ == '__main__':
     spot_signal_dict = {}
 
     future_strategy_order_dict = {}
+
+    current_timer = 0  # current count for cancel order 当前的计数
 
     binance_spot_client = BinanceSpotHttpClient(api_key=config.API_KEY, secret=config.API_SECRET)
     binance_future_client = BinanceFutureHttpClient(api_key=config.API_KEY, secret=config.API_SECRET)
