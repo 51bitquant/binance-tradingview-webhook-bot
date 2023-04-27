@@ -99,8 +99,72 @@ strategy.exit('tp', comment="exit")
 
 ```
 
+## 如何运行代码
+
+1. 下载代码并解压它
+
+2. 创建一个 python 解析器， 推荐使用 anaconda, 这里演示用 anaconda
+   创建一个名为 mytrader, python版本为3.9 python解析器: 
+   > create -n mytrader python==3.9
+   
+   接下来激活它：
+   
+   > conda activate mytrader
+ 
+  
+3. 进入你的代码，并安装依赖：
+    
+   >  pip install -r requirements.txt
+
+4. 修改配置文件
+
+   编辑config.py文件, 设置的apikey, passphrase 还有策略信息
+   
+
+5. 运行代码： 如果是在本地电脑可以直接在终端输入：python main.py,
+  或者在pycharm中直接运行，但是记得为代码配置为刚才创建的python解析器。具体的配置可以参考[网易云课堂的视频](https://study.163.com/course/courseMain.htm?courseId=1209509824&share=2&shareId=480000001919830)
+   
+8. 服务器运行
+   
+   在服务器端运行，如果是在linux服务器，可以用守护进程的方式运行：
+    
+   > nohup python -u main.py > nohup_log.out 2>&1 &
+   
+   当然你可以通过shell命令来执行代码中的start.sh 文件。
+   
+   如果需要购买服务器，这里推荐ucloud, 新用户优惠比较大，链接如下:
+   [https://passport.ucloud.cn/?invitation_code=C1x2EA81CD79B8C](https://passport.ucloud.cn/?invitation_code=C1x2EA81CD79B8C)
+
+
 程序中，采用市价单的方式下单，主要是为了保证及时成交。如果你是跑BTCUSDT,
-ETHUSDT等流动性好的品种，那么其滑点是比较小的。如果你想用挂单的方式，可以找到代码的下单方式，修改代码中的orderType和价格即可。
+ETHUSDT等流动性好的品种，那么其滑点是比较小的。如果你想用挂单的方式，支持限价单和市价单。你如果想下做市单，可以把订单类型order_type=OrderType.Maker即可。
+如果想下限价单，把下单的参数order_type设置为OrderType.LIMIT。 
+
+maker单: maker order
+``` python 
+status, order = binance_future_client.place_order(
+                symbol=symbol,
+                order_side=OrderSide.BUY,
+                order_type=OrderType.MAKER,
+                quantity=Decimal(vol1),
+                price=Decimal(price),
+                client_order_id=order_id
+            )
+
+```
+
+限价单： limit order
+``` python 
+status, order = binance_future_client.place_order(
+                symbol=symbol,
+                order_side=OrderSide.BUY,
+                order_type=OrderType.LIMIT,
+                quantity=Decimal(vol1),
+                price=Decimal(price),
+                client_order_id=order_id
+            )
+
+```
 
 你可以在同一个交易对下面，交易不同的策略，这就通过strategy_name来实现的。strategy_name是策略的名称，他们的持仓是根据策略的名称来识别的。
 策略A的持仓和策略B不会关联，他们管理好他们的持仓即可。

@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
 def welcome():
-    return "Hello Flask, This is for testing."
+    return "Hello Flask, This is for testing. If you receive this message, it means your configuration is correct."
 
 
 @app.route('/webhook', methods=['POST'])
@@ -162,6 +162,19 @@ def future_trade(data: dict):
 
 
 def timer_event(event: Event):
+    global current_seconds
+
+    current_seconds = current_seconds + 1
+    if current_seconds > config.CANCEL_ORDER_IN_SECONDS:
+        # will cancel the order repeatedly. the default value is CANCEL_ORDER_IN_SECONDS = 60
+        for strategy_name in future_strategy_order_dict.keys():
+            order_id = future_strategy_order_dict[strategy_name]
+            if not order_id:
+                continue
+
+            symbol = config.strategies.get(strategy_name, {}).get('symbol', "")
+            binance_future_client.cancel_order(symbol, client_order_id=order_id)
+
     for strategy_name in future_strategy_order_dict.keys():
         order_id = future_strategy_order_dict[strategy_name]
         if not order_id:
@@ -238,6 +251,8 @@ if __name__ == '__main__':
     spot_signal_dict = {}
 
     future_strategy_order_dict = {}
+
+    current_seconds = 0  # current count for cancel order 当前的计数
 
     binance_spot_client = BinanceSpotHttpClient(api_key=config.API_KEY, secret=config.API_SECRET)
     binance_future_client = BinanceFutureHttpClient(api_key=config.API_KEY, secret=config.API_SECRET)

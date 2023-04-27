@@ -126,6 +126,77 @@ strategy.exit('tp', comment="exit")
 
 ```
 
+## how to run the code
+1. download the codes and unzip it
+2. create a python interpreter, we recommend using anaconda and create a
+   python 3.9 version interpreter, execute the following command.
+   > create -n mytrader python==3.9
+   
+   then activate your python interpreter.
+   
+   > conda activate mytrader
+ 
+  
+3. cd to your code and install the requirements
+    
+   >  pip install -r requirements.txt
+   
+   the requirements.txt is in the code directories. or you can install
+   the dependencies one by one:
+   
+   > pip install requests
+   
+   > pip install flask
+   
+4. config your strategy
+   
+   edit the config.py file, config your apikey, passphrase and
+   strategies parameters.
+   
+5. run the codes.
+
+    if you run on your local computer, you can just run the main.py in
+    pycharm editor(remember to config your project interpreter before
+    running it). or you can execute it in your terminal: 
+    
+   > python main.py
+   
+    if you run on your server, you can use the start.sh script. or input
+    the following command in your terminal:
+    
+    > nohup python -u main.py > log.txt 2>&1 &
+   
+
+moreover, if you want to place the order in limit or maker order, just
+change place_order function's parameter:
+
+maker order
+``` python 
+status, order = binance_future_client.place_order(
+                symbol=symbol,
+                order_side=OrderSide.BUY,
+                order_type=OrderType.MAKER,
+                quantity=Decimal(vol1),
+                price=Decimal(price),
+                client_order_id=order_id
+            )
+
+```
+
+limit order
+``` python 
+status, order = binance_future_client.place_order(
+                symbol=symbol,
+                order_side=OrderSide.BUY,
+                order_type=OrderType.LIMIT,
+                quantity=Decimal(vol1),
+                price=Decimal(price),
+                client_order_id=order_id
+            )
+
+```
+
+
 Ok, happy using the Binance Tradingview Webhook bot and have a good
 luck.
 

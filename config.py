@@ -11,6 +11,8 @@ WEBHOOK_PASSPHRASE = "setting your tradingview passphrase, it's not your trading
 API_KEY = 'binance exchange api key, remember to edit restriction'
 API_SECRET = 'api secret'
 
+CANCEL_ORDER_IN_SECONDS = 60 # every X second, will cancel your order
+
 # config your strategy name and the strategy data you want to trade here
 #  tick_price: the price's precision, in Decimal
 #  min_volume: the volume's precision, in Decimal
