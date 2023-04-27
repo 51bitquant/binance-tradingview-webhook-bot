@@ -17,9 +17,10 @@ class OrderType(Enum):
     """
     Order type
     """
-    LIMIT = "LIMIT"
-    MARKET = "MARKET"
-    STOP = "STOP"
+    LIMIT = "LIMIT"  # Limit order 现价单
+    MARKET = "MARKET" # 市价单 吃单
+    STOP = "STOP" #
+    MAKER = "MAKER"  # 做市单 Maker order, POST Only.
 
 
 class RequestMethod(Enum):

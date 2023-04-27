@@ -66,7 +66,7 @@ http {
 
     server {
             listen 80;
-            server_name your.dormain.com;
+            server_name your.domain.com;
             charset utf-8;
     
             location / {
@@ -131,8 +131,6 @@ luck.
 
 
 # Contact
-
-twitter: @51bitquant.eth
 
 discord:51bitquant#8078
 

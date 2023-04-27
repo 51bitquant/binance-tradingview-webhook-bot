@@ -57,6 +57,10 @@ def future_trade(data: dict):
             vol1 = str(current_pos)
 
             order_id = binance_future_client.get_client_order_id()
+
+            # the order support: LIMIT, MARKET, MAKER order
+            # if you want to place a maker order, set the order_type=OrderType.MAKER
+            # 支持限价单，市价单，做市单，如果你想下做市单，设置参数 order_type=OrderType.MAKER
             status, order = binance_future_client.place_order(
                 symbol=symbol,
                 order_side=OrderSide.SELL,

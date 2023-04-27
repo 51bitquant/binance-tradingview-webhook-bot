@@ -175,12 +175,14 @@ class BinanceFutureHttpClient(object):
 
         if order_type == OrderType.LIMIT:
             params['timeInForce'] = time_inforce
-
-        if order_type == OrderType.MARKET:
+        elif order_type == OrderType.MARKET:
             if params.get('price', None):
                 del params['price']
 
-        if order_type == OrderType.STOP:
+        elif order_type == OrderType.MARKET:
+            params['timeInForce'] = "GTX"
+
+        elif order_type == OrderType.STOP:
             if stop_price > 0:
                 params["stopPrice"] = stop_price
             else:
