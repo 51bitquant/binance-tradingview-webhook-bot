@@ -1,6 +1,19 @@
-WEBHOOK_PASSPHRASE = "your tradingview passphrase, not your tradingview password"
-API_KEY = 'binance exchange api key, remember to edit restriction'
+# the following is the configuration for your tradingview webhook bot
+
+# WEBHOOK_PASSPHRASE = "your password like"   # the password for security, must be the same from tradingview webhook settings.
+# API_KEY = 'past your api secret here.'
+# API_SECRET = 'past your api secret here.'
+
+# the passphrase is a string for verifying that prevents others(especially the bad guy) to invoke the POST request in the program.
+# passphrase 字符串是为了验证防止其他人(特别是坏人)去调用你的POST请求接口，这个接口是可以发送下单信号的。
+
+WEBHOOK_PASSPHRASE = "setting your tradingview passphrase, it's not your tradingview password."
+API_KEY = 'binance exchange api key, remember to edit restriction for future/spot trading'
 API_SECRET = 'api secret'
+
+CANCEL_ORDERS_IN_SECONDS = 30 # every 30 second, will cancel your orders
+
+QUERY_ORDERS_STATUS_IN_SECONDS = 5 # query orders' status for every five seconds.
 
 # config your strategy name and the strategy data you want to trade here
 #  tick_price: the price's precision, in Decimal
@@ -10,6 +23,10 @@ API_SECRET = 'api secret'
 #  pos is the strategy's position in Decimal
 # pls check out the price's precision and volume's precision from Binance Exchange.
 from decimal import Decimal
+
+# the amount should be wrapped with Decimal, or your order amount precision will be incorrect.
+# 数量应该使用Decimal类来包裹起来，防止下单数量，价格精度的丢失。
+#
 
 strategies = {
     # strategy name -> strategy data

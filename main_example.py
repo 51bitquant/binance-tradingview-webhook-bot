@@ -161,11 +161,14 @@ def future_trade(data: dict):
 
 
 def timer_event(event: Event):
-    global current_timer
+    global cancel_orders_timer
+    global query_orders_timer
 
-    current_timer = current_timer + 1
-    if current_timer > config.CANCEL_ORDER_IN_SECONDS:
-        current_timer = 0  # reset the timer
+    cancel_orders_timer += 1
+    query_orders_timer += 1
+
+    if cancel_orders_timer > config.CANCEL_ORDERS_IN_SECONDS:  # for cancel order.
+        cancel_orders_timer = 0  # reset the timer
         # will cancel the order repeatedly. the default value is CANCEL_ORDER_IN_SECONDS = 60
         for strategy_name in future_strategy_order_dict.keys():
             order_id = future_strategy_order_dict[strategy_name]
@@ -175,31 +178,34 @@ def timer_event(event: Event):
             symbol = config.strategies.get(strategy_name, {}).get('symbol', "")
             binance_future_client.cancel_order(symbol, client_order_id=order_id)
 
-    for strategy_name in future_strategy_order_dict.keys():
-        order_id = future_strategy_order_dict[strategy_name]
-        if not order_id:
-            continue
+    if query_orders_timer > config.QUERY_ORDERS_STATUS_IN_SECONDS:  # for updating order.
+        query_orders_timer = 0  # reset the query order timer.
 
-        symbol = config.strategies.get(strategy_name, {}).get('symbol', "")
+        for strategy_name in future_strategy_order_dict.keys():
+            order_id = future_strategy_order_dict[strategy_name]
+            if not order_id:
+                continue
 
-        status_code, order = binance_future_client.get_order(symbol, client_order_id=order_id)
-        if status_code == 200 and order:
-            if order.get('status') == 'CANCELED' or order.get('status') == 'FILLED':
-                side = order.get('side')
-                strategy_config = config.strategies.get(strategy_name, {})
-                executed_qty = Decimal(order.get('executedQty', "0"))
+            symbol = config.strategies.get(strategy_name, {}).get('symbol', "")
 
-                if side == "BUY":  # BUY
-                    strategy_config['pos'] = strategy_config['pos'] + executed_qty
+            status_code, order = binance_future_client.get_order(symbol, client_order_id=order_id)
+            if status_code == 200 and order:
+                if order.get('status') == 'CANCELED' or order.get('status') == 'FILLED':
+                    side = order.get('side')
+                    strategy_config = config.strategies.get(strategy_name, {})
+                    executed_qty = Decimal(order.get('executedQty', "0"))
 
-                elif side == "SELL":  # SELL
-                    strategy_config['pos'] = strategy_config['pos'] - executed_qty
+                    if side == "BUY":  # BUY
+                        strategy_config['pos'] = strategy_config['pos'] + executed_qty
 
-                # print(strategy_config)
-                config.strategies[strategy_name] = strategy_config  # update the data.
+                    elif side == "SELL":  # SELL
+                        strategy_config['pos'] = strategy_config['pos'] - executed_qty
+
+                    # print(strategy_config)
+                    config.strategies[strategy_name] = strategy_config  # update the data.
+                    future_strategy_order_dict[strategy_name] = None
+            elif status_code == 400 and order.get('code') == -2013:  # Order does not exist.
                 future_strategy_order_dict[strategy_name] = None
-        elif status_code == 400 and order.get('code') == -2013:  # Order does not exist.
-            future_strategy_order_dict[strategy_name] = None
 
     for strategy_name in future_signal_dict.keys():
 
@@ -252,7 +258,8 @@ if __name__ == '__main__':
 
     future_strategy_order_dict = {}
 
-    current_timer = 0  # current count for cancel order 当前的计数
+    cancel_orders_timer = 0  # 撤单的timer.
+    query_orders_timer = 0  # 查询订单的tismer.
 
     binance_spot_client = BinanceSpotHttpClient(api_key=config.API_KEY, secret=config.API_SECRET)
     binance_future_client = BinanceFutureHttpClient(api_key=config.API_KEY, secret=config.API_SECRET)
